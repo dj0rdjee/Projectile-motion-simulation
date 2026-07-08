@@ -24,7 +24,7 @@ class Environment():
         self.wall_height = None
         #target
         self.target_x = None
-        self.tatget_top = None
+        self.target_top = None
         self.target_bottom = None
         #ceiling
         self.ceiling_y = None
@@ -65,7 +65,7 @@ def simulate(bullet, env):
     """Runs simulation loop using Euler integration until the projectile hits the ground or an obstacle"""
     hit_wall = False
     hit_target = False
-    hit_cealing = False
+    hit_ceiling = False
     while bullet.y>=0:
   
         ax=0
@@ -92,7 +92,7 @@ def simulate(bullet, env):
                     break
         if env.ceiling_y is not None:
             if bullet.y >= env.ceiling_y:
-                hit_cealing = True
+                hit_ceiling = True
                 break
 
     print(f"time of flight was {len(bullet.x_points)*env.dt:.2f}s")
@@ -103,7 +103,7 @@ def simulate(bullet, env):
         print(f"colided with a wall at X: {env.wall_x:.2f}m Y: {bullet.y:.2f}m")
     if hit_target:
         print(f"colided with a target at X: {env.target_x:.2f}m Y: {bullet.y:.2f}m")
-    if hit_cealing:
+    if hit_ceiling:
         print(f"colided with a ceiling at X: {bullet.x:.2f}m Y: {env.ceiling_y}")
     return 0
 

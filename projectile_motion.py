@@ -5,13 +5,19 @@ from obstacles import Wall, Ceiling, H_Target, V_Target
 
 class Projectile():
     """Represents a projectile and stores its initial conditions and trajectory."""
-    def __init__(self, x, y, v0, angle_deg):
+    def __init__(self, x, y, v0, angle_deg, mass, k):
         self.x = x
         self.y = y
         self.v0 = v0
         self.angle_rad = np.radians(angle_deg)
+
+        self.mass = mass
+        self.dragCoefficient = k #for now a simplified version of dragCoefficient
+    
         self.vx = v0*np.cos(self.angle_rad)
         self.vy = v0*np.sin(self.angle_rad)
+
+        self.v = np.sqrt(self.vx**2 + self.vy**2)
         #lists to store the whole trajectory for plotting
         self.x_points = [self.x]
         self.y_points = [self.y]
@@ -29,8 +35,10 @@ def initialize():
     y = float(input("Enter starting Y coordinate: "))
     v0 = float(input("Enter initial velocity (m/s): "))
     angle = float(input("Enter launch angle (degrees): "))
+    mass = float(input("Enter the mass of the projectile (default is 1): "))
+    k = float(input("Enter the dragCoefficient (0 to disable): "))
 
-    projectile = Projectile(x,y,v0,angle)
+    projectile = Projectile(x,y,v0,angle,mass,k)
 
     return projectile
 
@@ -67,20 +75,31 @@ def simulate(bullet, env):
     """Runs simulation loop using Euler integration until the projectile hits the ground or an obstacle"""
 
     while bullet.y>=0:
-  
+
         ax=0
         ay=-env.g
 
-        bullet.x += bullet.vx*env.dt
-        bullet.y += bullet.vy*env.dt
+        bullet.v = np.sqrt(bullet.vx**2 + bullet.vy**2)
+
+        if bullet.dragCoefficient > 0 and  bullet.v> 0:
+            drag_x = -bullet.dragCoefficient * bullet.v * bullet.vx
+            drag_y = -bullet.dragCoefficient * bullet.v * bullet.vy
+
+            ax = drag_x / bullet.mass
+            ay = -env.g + (drag_y / bullet.mass)
 
         bullet.vx += ax*env.dt
         bullet.vy += ay*env.dt
+
+        bullet.x += bullet.vx*env.dt
+        bullet.y += bullet.vy*env.dt
         
         bullet.x_points.append(bullet.x)
         bullet.y_points.append(bullet.y)
 
         hit_obstacle = False
+        collision_msg = ""
+
         for obstacle in env.obstacles:
             if obstacle.check_collision(bullet):
                 collision_msg = f"(colided with {type(obstacle).__name__}at X: {bullet.x:.2f}m, Y: {bullet.y:.2f}m)"
@@ -91,8 +110,10 @@ def simulate(bullet, env):
     print(f"time of flight was {len(bullet.x_points)*env.dt:.2f}s")
     print(f"maximal height reached was {max(bullet.y_points):.2f}m")
     print(f"distance travelled is {bullet.x_points[-1]-bullet.x_points[0]:.2f}m")
+
     if hit_obstacle:
         print(collision_msg)
+
     return 0
 
 def plot(bullet,env):

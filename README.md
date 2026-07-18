@@ -16,8 +16,6 @@ Users can build a custom obstacle course through command-line prompts by placing
 
 ## Planned Features
 
-- Multiple obstacles at once
-- Air resistance
 - Wind
 - Elastic collisions
 
